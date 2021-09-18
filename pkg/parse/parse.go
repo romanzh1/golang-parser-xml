@@ -4,22 +4,40 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 )
 
-func FromXML() []Project {
-	xmlFile, err := os.Open("pkg/parse/export_yandex_leningradka_msk.xml")
+func FromXML(xmlFile *os.File) []Project {
+	dataByteValue, err := ioutil.ReadAll(xmlFile)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Println("Successfully Opened users.xml")
-	defer xmlFile.Close()
+	projects := exportToStruct(dataByteValue)
+	return projects
+}
 
-	byteValue, _ := ioutil.ReadAll(xmlFile)
+func FromURL(url string) []Project {
+	req, err := http.NewRequest("GET", url, nil) // TODO think out and can shorten
+	if err != nil {
+		panic(err)
+	}
+	client := new(http.Client)
+	response, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	dataByteValue, _ := ioutil.ReadAll(response.Body)
+	projects := exportToStruct(dataByteValue)
+
+	return projects
+}
+
+func exportToStruct(dataByteValue []byte) []Project {
 	data := &Data{}
-
-	err = xml.Unmarshal(byteValue, data)
+	err := xml.Unmarshal(dataByteValue, data)
 	if err != nil {
 		fmt.Println(err)
 	}
