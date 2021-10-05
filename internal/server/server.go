@@ -15,16 +15,16 @@ func ProcessRequests(router *chi.Mux) {
 	})
 
 	router.Post("/api/parse", func(w http.ResponseWriter, r *http.Request) {
-		// var url struct {
-		// 	l string			// TODO change the map to struct or some other way
-		// }
-		url := map[string]string{}
-		err := json.NewDecoder(r.Body).Decode(&url)
+		type link struct {
+			URL string `json:"url"`
+		}
+		var ref link
+		err := json.NewDecoder(r.Body).Decode(&ref)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		projects := parse.FromURL(url["url"])
+		projects := parse.FromURL(ref.URL)
 		projectJSON, err := json.MarshalIndent(projects, "	", "  ")
 		if err != nil {
 			fmt.Println(err)

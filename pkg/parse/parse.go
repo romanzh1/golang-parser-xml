@@ -3,41 +3,36 @@ package parse
 import (
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 )
 
-func FromXML(xmlFile *os.File) []Project {
-	dataByteValue, err := ioutil.ReadAll(xmlFile)
+func FromXML(path string) []Project {
+	xmlFile, err := os.Open(path)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println("Successfully Opened " + xmlFile.Name())
+	defer xmlFile.Close()
 
-	projects := exportToStruct(dataByteValue)
+	projects := exportToStruct(xmlFile)
 	return projects
 }
 
 func FromURL(url string) []Project {
-	req, err := http.NewRequest("GET", url, nil) // TODO think out and can shorten
+	resp, err := http.Get(url)
 	if err != nil {
-		panic(err)
-	}
-	client := new(http.Client)
-	response, err := client.Do(req)
-	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
-	dataByteValue, _ := ioutil.ReadAll(response.Body)
-	projects := exportToStruct(dataByteValue)
-
+	projects := exportToStruct(resp.Body)
 	return projects
 }
 
-func exportToStruct(dataByteValue []byte) []Project {
+func exportToStruct(writer io.Reader) []Project {
 	data := &Data{}
-	err := xml.Unmarshal(dataByteValue, data)
+	err := xml.NewDecoder(writer).Decode(&data)
 	if err != nil {
 		fmt.Println(err)
 	}

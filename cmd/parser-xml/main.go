@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -17,6 +19,12 @@ func main() {
 	// file.PrintJSONData(pathXMLFile)
 
 	// request processing function
-	server.ProcessRequests(router)
-	http.ListenAndServe(":4000", router)
+	server.ProcessRequests(router) // TODO handle the error probably
+
+	fmt.Println("Server start on port 4000")
+	err := http.ListenAndServe(":4000", router)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 }
